@@ -8,7 +8,7 @@
 
 A sysfs-based GPIO status indicator for aiding embedded development and pinout identification.
 
-> Still in development, the API may change in the future.
+> Only available on **Linux**.
 
 ## Install
 

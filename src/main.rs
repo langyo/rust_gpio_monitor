@@ -28,4 +28,6 @@ async fn main() -> anyhow::Result<()> {
 }
 
 #[cfg(all(windows, not(debug_assertions)))]
-fn main() {}
+fn main() {
+    println!("This application is not supported on Windows.");
+}
