@@ -1,8 +1,13 @@
 [package]
 name = "gpio_monitor"
-authors = ["langyo <langyo@easy-hydro.com.cn>"]
 version = "0.1.0"
 edition = "2024"
+
+publish = true
+authors = ["langyo <langyo.china@gmail.com>"]
+description = "A sysfs-based GPIO status indicator for aiding embedded development and pinout identification"
+license = "Apache-2.0"
+repository = "https://github.com/langyo/gpio_monitor"
 
 [dependencies]
 anyhow = { version = "^1", features = ["backtrace"] }
