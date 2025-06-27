@@ -11,8 +11,8 @@ repository = "https://github.com/langyo/gpio_monitor"
 
 [dependencies]
 anyhow = { version = "^1", features = ["backtrace"] }
+clap = { version = "^4", features = ["derive"] }
 
-[target.'cfg(unix)'.dependencies]
 embedded-hal = "^1"
 rmodbus = { version = "^0.10", features = ["with_serde"] }
 sysfs_gpio = "^0.6"

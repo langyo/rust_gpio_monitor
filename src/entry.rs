@@ -16,20 +16,33 @@ use ratatui::{
 };
 use sysfs_gpio::{Direction, Pin};
 
-const PIN_COUNT: usize = 256;
+use crate::Args;
 
-pub async fn main() -> Result<()> {
+pub async fn main(args: Args) -> Result<()> {
     color_eyre::install().map_err(|err| anyhow!(err))?;
     let terminal = ratatui::init();
-    App::default().run(terminal).await?;
+    App::new(args).run(terminal).await?;
     ratatui::try_restore()?;
     Ok(())
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct App {
     should_quit: bool,
     widget: ListWidget,
+}
+
+impl App {
+    pub fn new(args: Args) -> Self {
+        Self {
+            should_quit: false,
+            widget: ListWidget {
+                state: Arc::new(Mutex::new(State::new(args.clone()))),
+                table_state: Arc::new(Mutex::new(Default::default())),
+                args,
+            },
+        }
+    }
 }
 
 impl App {
@@ -75,10 +88,11 @@ impl App {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 struct ListWidget {
     state: Arc<Mutex<State>>,
     table_state: Arc<Mutex<TableState>>,
+    args: Args,
 }
 
 #[derive(Debug, Clone)]
@@ -90,9 +104,9 @@ struct State {
     last_update: std::time::Instant,
 }
 
-impl Default for State {
-    fn default() -> Self {
-        for i in 0..PIN_COUNT {
+impl State {
+    fn new(args: Args) -> Self {
+        for i in 0..args.count {
             let _ = std::process::Command::new("sh")
                 .arg("-c")
                 .arg(format!("echo {} > /sys/class/gpio/export", i))
@@ -102,10 +116,10 @@ impl Default for State {
         }
 
         Self {
-            gpios: vec![None; PIN_COUNT],
-            prev_gpios: vec![None; PIN_COUNT], // 初始化为None
-            gpios_has_changed: vec![false; PIN_COUNT],
-            pins: (0..PIN_COUNT)
+            gpios: vec![None; args.count as usize],
+            prev_gpios: vec![None; args.count as usize], // 初始化为None
+            gpios_has_changed: vec![false; args.count as usize],
+            pins: (0..args.count)
                 .map(|i| {
                     let pin = Pin::new(i as u64);
                     if pin.set_direction(Direction::In).is_err() {
@@ -132,7 +146,7 @@ impl ListWidget {
 
     async fn init_gpios(&self) -> Result<()> {
         if let Ok(mut state) = self.state.lock() {
-            for i in 0..PIN_COUNT {
+            for i in 0..self.args.count {
                 let pin = &state.pins[i];
                 let current_value = pin
                     .map(|pin| pin.get_value().map(|val| val != 0).ok())
@@ -149,7 +163,7 @@ impl ListWidget {
 
     async fn fetch_gpios(&self) -> Result<()> {
         if let Ok(mut state) = self.state.lock() {
-            for i in 0..PIN_COUNT {
+            for i in 0..self.args.count {
                 let pin = &state.pins[i];
                 let current_value = pin
                     .map(|pin| pin.get_value().map(|val| val != 0).ok())
@@ -225,7 +239,7 @@ impl Widget for ListWidget {
             .title_bottom("q to quit, r to refresh, j/k to scroll, b to block changed pins");
 
         // 8x8 GPIO matrix table
-        let rows = (0..PIN_COUNT / 8).map(|row| {
+        let rows = (0..self.args.count / 8).map(|row| {
             let cells = (0..8).map(|col| {
                 let idx = row * 8 + col;
                 let val = state.gpios.get(idx).copied().unwrap_or(None);
