@@ -2,7 +2,7 @@
 
 ![Crates.io License](https://img.shields.io/crates/l/gpio_monitor)
 ![Crates.io Version](https://img.shields.io/crates/v/gpio_monitor)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/langyo/gpio_monitor/test.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/langyo/rust_gpio_monitor/test.yml)
 
 ## Introduction
 
